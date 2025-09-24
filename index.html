@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Valorant Lineups — SPA (LocalStorage)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0b0d13;
+        --panel: #131824;
+        --muted: #9aa4b2;
+        --text: #e9eef5;
+        --primary: #ff4655;
+        --primary-700: #c93643;
+        --card: #0f1420;
+        --border: #1f2738;
+        --ok: #20c997;
+        --bad: #fa5252;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto,
+          "Helvetica Neue", Arial, sans-serif;
+        color: var(--text);
+        background: linear-gradient(180deg, #0a0d12, #0b0d13 30%, #0b0d13);
+      }
+      a {
+        color: inherit;
+      }
+      button {
+        cursor: pointer;
+        border: 0;
+      }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 16px;
+      }
+
+      /* Topbar */
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        background: rgba(11, 13, 19, 0.7);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid var(--border);
+      }
+      .topbar-inner {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 16px;
+      }
+      .brand {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+      .logo {
+        width: 28px;
+        height: 28px;
+        border-radius: 7px;
+        background: linear-gradient(135deg, var(--primary), #ff8a9a);
+        box-shadow: 0 0 0 2px #0006, 0 6px 16px #0008;
+      }
+      .brand h1 {
+        font-size: 16px;
+        margin: 0;
+        letter-spacing: 0.4px;
+      }
+      .search {
+        flex: 1;
+        display: flex;
+        gap: 8px;
+        max-width: 560px;
+        margin: 0 16px;
+      }
+      .search input,
+      .select {
+        flex: 1;
+        appearance: none;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        color: var(--text);
+        padding: 10px 12px;
+        border-radius: 10px;
+        outline: none;
+      }
+      .btn {
+        background: var(--primary);
+        color: #fff;
+        padding: 10px 14px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: 0.2s;
+      }
+      .btn:hover {
+        background: var(--primary-700);
+      }
+      .btn.ghost {
+        background: transparent;
+        border: 1px solid var(--border);
+      }
+
+      /* Auth panel */
+      .auth {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 16px;
+      }
+      .card h2 {
+        margin: 0 0 8px;
+        font-size: 18px;
+      }
+      .card p {
+        margin: 0 0 12px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+      .field {
+        display: grid;
+        gap: 6px;
+        margin-bottom: 10px;
+      }
+      .field label {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .field input,
+      .field select,
+      .field textarea {
+        background: var(--card);
+        border: 1px solid var(--border);
+        color: var(--text);
+        padding: 10px 12px;
+        border-radius: 10px;
+        outline: none;
+      }
+      .muted {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      /* Grid */
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+      }
+      @media (max-width: 900px) {
+        .grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+      @media (max-width: 600px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .card-post {
+        position: relative;
+        overflow: hidden;
+        border-radius: 16px;
+        background: linear-gradient(180deg, #12192a, #0e1523);
+        border: 1px solid var(--border);
+      }
+      .thumb {
+        aspect-ratio: 16/9;
+        display: grid;
+        place-items: center;
+        background: #0c121f
+          url("https://i.ytimg.com/vi/5qap5aO4i9A/hqdefault.jpg") center/cover;
+      }
+      .card-post .meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px;
+      }
+      .title {
+        font-weight: 700;
+      }
+      .author {
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .likes {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      /* Pills */
+      .pills {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 8px;
+      }
+      .pill {
+        font-size: 11px;
+        border: 1px solid var(--border);
+        background: var(--card);
+        padding: 6px 8px;
+        border-radius: 999px;
+        color: var(--muted);
+      }
+
+      /* Fab */
+      .fab {
+        position: fixed;
+        right: 20px;
+        bottom: 20px;
+        background: var(--primary);
+        color: #fff;
+        border-radius: 16px;
+        padding: 12px 14px;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        box-shadow: 0 10px 30px #0008;
+      }
+      .fab[disabled] {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      /* Modals */
+      .modal {
+        position: fixed;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: #0007;
+        backdrop-filter: blur(4px);
+        z-index: 100;
+      }
+      .modal.show {
+        display: flex;
+      }
+      .modal-card {
+        width: min(100%, 900px);
+        max-height: 90vh;
+        overflow: auto;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+      }
+
+      .modal-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border);
+      }
+      .modal-body {
+        padding: 16px;
+      }
+
+      .split {
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr;
+        gap: 16px;
+      }
+      @media (max-width: 900px) {
+        .split {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .video {
+        aspect-ratio: 16/9;
+        width: 100%;
+        border: 0;
+        border-radius: 12px;
+        background: #000;
+      }
+
+      .actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .chip {
+        display: inline-flex;
+        gap: 6px;
+        align-items: center;
+        background: var(--card);
+        border: 1px solid var(--border);
+        padding: 8px 10px;
+        border-radius: 999px;
+      }
+      .chip .n {
+        color: #fff;
+        font-weight: 700;
+      }
+      .chip.good {
+        border-color: #143d2a;
+        background: #0c251b;
+      }
+      .chip.bad {
+        border-color: #3d1414;
+        background: #250c0c;
+      }
+
+      .comments {
+        display: grid;
+        gap: 10px;
+      }
+      .comment {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 10px;
+      }
+      .comment .by {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .empty {
+        display: grid;
+        place-items: center;
+        padding: 40px;
+        border: 1px dashed var(--border);
+        border-radius: 16px;
+        background: linear-gradient(180deg, #101626, #0d1424);
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      /* Responsividade extra para 768px (tablets) */
+      @media (max-width: 768px) {
+        /* Topbar: empilhar logo e filtros */
+        .topbar-inner {
+          flex-direction: column;
+          align-items: stretch;
+          gap: 12px;
+        }
+
+        .brand {
+          justify-content: center;
+        }
+
+        .search {
+          flex-direction: column;
+          max-width: 100%;
+          margin: 0;
+        }
+
+        .search input,
+        .search .select {
+          width: 100%;
+        }
+
+        /* Auth cards: só 1 por linha */
+        .auth {
+          grid-template-columns: 1fr;
+        }
+
+        /* Grid de posts: 2 colunas em tablet */
+        .grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        /* Modal split: empilha vídeo e comentários */
+        .split {
+          grid-template-columns: 1fr;
+        }
+
+        aside {
+          margin-top: 16px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="topbar-inner container">
+        <div class="brand">
+          <div class="logo" aria-hidden="true"></div>
+          <h1>VALO Lineups</h1>
+        </div>
+        <div class="search">
+          <input id="q" placeholder="Buscar por agente, mapa ou título…" />
+          <select id="filterAgent" class="select">
+            <option value="">Agente</option>
+          </select>
+          <select id="filterMap" class="select">
+            <option value="">Mapa</option>
+          </select>
+          <select id="filterSort" class="select" title="Ordenação">
+            <option value="smart">Prioridade: data + engajamento</option>
+            <option value="recent">Mais recentes</option>
+            <option value="trending">Mais engajamento</option>
+          </select>
+        </div>
+        <div id="authArea"></div>
+      </div>
+    </header>
+
+    <main class="container" id="app">
+      <section id="authView" class="auth"></section>
+      <section id="feedView" class="hidden">
+        <div id="emptyState" class="empty hidden">
+          <div>
+            <h3>Nenhum lineup ainda</h3>
+            <p class="muted">
+              Seja o primeiro a compartilhar um setup, pós-plant, pixel, etc.
+            </p>
+          </div>
+        </div>
+        <div id="grid" class="grid"></div>
+      </section>
+    </main>
+
+    <!-- New Post Modal -->
+    <div id="postModal" class="modal" role="dialog" aria-modal="true">
+      <div class="modal-card" style="width: min(100%, 720px)">
+        <div class="modal-head">
+          <strong>Novo lineup</strong>
+          <button class="btn ghost" data-close="#postModal">Fechar</button>
+        </div>
+        <div class="modal-body">
+          <div class="field">
+            <label>Agente</label>
+            <select id="fAgent"></select>
+          </div>
+          <div class="field">
+            <label>Mapa</label>
+            <select id="fMap"></select>
+          </div>
+          <div class="field">
+            <label>URL do YouTube (https://…)</label>
+            <input id="fUrl" placeholder="https://www.youtube.com/watch?v=…" />
+          </div>
+          <div class="field">
+            <label>Título</label>
+            <input id="fTitle" placeholder="Título curto e claro" />
+          </div>
+          <div class="field">
+            <label>Descrição</label>
+            <textarea
+              id="fDesc"
+              rows="4"
+              placeholder="Explique o setup (posição, pixel, utilitária, etc.)"
+            ></textarea>
+          </div>
+          <div style="display: flex; justify-content: flex-end; gap: 8px">
+            <button class="btn ghost" data-close="#postModal">Cancelar</button>
+            <button id="savePost" class="btn">Salvar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- View Post Modal -->
+    <div id="viewModal" class="modal" role="dialog" aria-modal="true">
+      <div class="modal-card">
+        <div class="modal-head">
+          <div style="display: flex; gap: 12px; align-items: center">
+            <strong id="vmTitle">Título</strong>
+            <span class="pill" id="vmMeta"></span>
+          </div>
+          <button class="btn ghost" data-close="#viewModal">Fechar</button>
+        </div>
+        <div class="modal-body split">
+          <div>
+            <iframe
+              id="vmPlayer"
+              class="video"
+              allowfullscreen
+              title="Video"
+            ></iframe>
+            <div class="pills" id="vmPills"></div>
+            <div style="margin-top: 12px" class="actions">
+              <button class="chip good" id="btnLike" title="Curtir">
+                👍 <span class="n" id="vmLikes">0</span>
+              </button>
+              <button class="chip bad" id="btnDislike" title="Não curtir">
+                👎 <span class="n" id="vmDislikes">0</span>
+              </button>
+              <span class="chip">👁️ <span class="n" id="vmViews">0</span></span>
+            </div>
+            <p id="vmDesc" class="muted" style="margin-top: 8px"></p>
+          </div>
+          <aside>
+            <h3 style="margin: 0 0 8px">Comentários</h3>
+            <div id="comments" class="comments"></div>
+            <div id="commentForm" class="field" style="margin-top: 8px">
+              <label>Escreva um comentário</label>
+              <input
+                id="commentText"
+                placeholder="Seja respeitoso. Dicas são bem‑vindas."
+              />
+              <button id="sendComment" class="btn">Comentar</button>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </div>
+
+    <button id="fab" class="fab" disabled>＋ Postar lineup</button>
+
+    <script>
+      // --- Data & Storage -------------------------------------------------------
+      const AGENTS = [
+        "Sova",
+        "Viper",
+        "Brimstone",
+        "Killjoy",
+        "Cypher",
+        "Sage",
+        "Omen",
+        "Astra",
+        "Phoenix",
+        "Jett",
+        "Raze",
+        "Skye",
+        "KAY/O",
+        "Fade",
+        "Gekko",
+        "Harbor",
+        "Iso",
+        "Clove",
+        "Deadlock",
+        "Breach",
+        "Neon",
+        "Yoru",
+        "Reyna",
+      ];
+      const MAPS = [
+        "Ascent",
+        "Bind",
+        "Haven",
+        "Split",
+        "Lotus",
+        "Pearl",
+        "Icebox",
+        "Fracture",
+        "Breeze",
+        "Sunset",
+      ];
+      const LS = {
+        users: () => JSON.parse(localStorage.getItem("valo_users") || "[]"),
+        saveUsers: (arr) =>
+          localStorage.setItem("valo_users", JSON.stringify(arr)),
+        me: () => JSON.parse(localStorage.getItem("valo_session") || "null"),
+        setMe: (u) => localStorage.setItem("valo_session", JSON.stringify(u)),
+        posts: () => JSON.parse(localStorage.getItem("valo_posts") || "[]"),
+        savePosts: (arr) =>
+          localStorage.setItem("valo_posts", JSON.stringify(arr)),
+      };
+      const uid = () =>
+        Math.random().toString(36).slice(2) + Date.now().toString(36);
+      const todayKey = (ts) => new Date(ts).toISOString().slice(0, 10); // YYYY-MM-DD
+
+      // --- State ----------------------------------------------------------------
+      let STATE = { q: "", agent: "", map: "", sort: "smart" };
+
+      // --- Init selects & filters ----------------------------------------------
+      function fillSelect(el, opts, placeholder) {
+        el.innerHTML =
+          `<option value="">${placeholder}</option>` +
+          opts.map((o) => `<option>${o}</option>`).join("");
+      }
+
+      fillSelect(document.getElementById("filterAgent"), AGENTS, "Agente");
+      fillSelect(document.getElementById("filterMap"), MAPS, "Mapa");
+      fillSelect(document.getElementById("fAgent"), AGENTS, "Agente");
+      fillSelect(document.getElementById("fMap"), MAPS, "Mapa");
+
+      // --- Auth Views -----------------------------------------------------------
+      function renderAuthArea() {
+        const me = LS.me();
+        const area = document.getElementById("authArea");
+        if (me) {
+          area.innerHTML = `<span class="muted">Olá, <strong>${escapeHtml(
+            me.username
+          )}</strong></span> <button id="logout" class="btn ghost">Sair</button>`;
+          document.getElementById("logout").onclick = () => {
+            LS.setMe(null);
+            mount();
+          };
+          document.getElementById("fab").disabled = false;
+        } else {
+          area.innerHTML = `<button id="openAuth" class="btn">Entrar / Cadastrar</button>`;
+          document.getElementById("openAuth").onclick = () => showAuth();
+          document.getElementById("fab").disabled = true;
+        }
+      }
+
+      function showAuth() {
+        const el = document.getElementById("authView");
+        const feed = document.getElementById("feedView");
+        el.classList.remove("hidden");
+        feed.classList.add("hidden");
+
+        el.innerHTML = `
+          <div class="card">
+            <h2>Entrar</h2>
+            <p>Entre com seu usuário para postar e interagir.</p>
+            <div class="field"><label>Usuário</label><input id="liUser" placeholder="nick#123" /></div>
+            <div class="field"><label>Senha</label><input id="liPass" type="password" placeholder="••••••" /></div>
+            <button id="btnLogin" class="btn">Entrar</button>
+          </div>
+          <div class="card">
+            <h2>Cadastrar</h2>
+            <p>Crie sua conta local (apenas neste navegador).</p>
+            <div class="field"><label>Usuário</label><input id="suUser" placeholder="nick#123" /></div>
+            <div class="field"><label>Senha</label><input id="suPass" type="password" placeholder="mínimo 4 caracteres" /></div>
+            <button id="btnSignup" class="btn">Cadastrar</button>
+          </div>
+        `;
+
+        document.getElementById("btnLogin").onclick = () => {
+          const u = document.getElementById("liUser").value.trim();
+          const p = document.getElementById("liPass").value;
+          const users = LS.users();
+          const found = users.find((x) => x.username === u && x.password === p);
+          if (found) {
+            LS.setMe({ id: found.id, username: found.username });
+            mount();
+          } else alert("Usuário ou senha inválidos.");
+        };
+
+        document.getElementById("btnSignup").onclick = () => {
+          const u = document.getElementById("suUser").value.trim();
+          const p = document.getElementById("suPass").value;
+          if (u.length < 3 || p.length < 4)
+            return alert("Preencha um usuário (≥3) e senha (≥4).");
+          const users = LS.users();
+          if (users.some((x) => x.username === u))
+            return alert("Usuário já existe.");
+          const nu = {
+            id: uid(),
+            username: u,
+            password: p,
+            createdAt: Date.now(),
+          };
+          users.push(nu);
+          LS.saveUsers(users);
+          LS.setMe({ id: nu.id, username: nu.username });
+          mount();
+        };
+      }
+
+      // --- Feed -----------------------------------------------------------------
+      function showFeed() {
+        document.getElementById("authView").classList.add("hidden");
+        document.getElementById("feedView").classList.remove("hidden");
+        renderGrid();
+      }
+
+      function renderGrid() {
+        const grid = document.getElementById("grid");
+        const posts = LS.posts();
+
+        const filtered = posts.filter((p) => {
+          if (STATE.agent && p.agent !== STATE.agent) return false;
+          if (STATE.map && p.map !== STATE.map) return false;
+          if (STATE.q) {
+            const q = STATE.q.toLowerCase();
+            const txt =
+              `${p.title} ${p.description} ${p.agent} ${p.map} ${p.author}`.toLowerCase();
+            if (!txt.includes(q)) return false;
+          }
+          return true;
+        });
+
+        const sorted = sortPosts(filtered, STATE.sort);
+
+        document
+          .getElementById("emptyState")
+          .classList.toggle("hidden", sorted.length !== 0);
+
+        grid.innerHTML = sorted
+          .map(
+            (p) => `
+          <article class="card-post" data-id="${p.id}">
+            <div class="thumb" style="background-image:url('${thumbFromUrl(
+              p.url
+            )}')"></div>
+            <div class="meta">
+              <div>
+                <div class="title">${escapeHtml(p.title)}</div>
+                <div class="author">por ${escapeHtml(p.author)} · ${formatDate(
+              p.createdAt
+            )}</div>
+              </div>
+              <div class="likes" title="Engajamento">
+                <span>👍 ${p.likes?.length || 0}</span>
+                <span>💬 ${p.comments?.length || 0}</span>
+                <span>👁️ ${p.views || 0}</span>
+              </div>
+            </div>
+            <div class="pills" style="padding:0 12px 12px">
+              <span class="pill">${p.agent}</span>
+              <span class="pill">${p.map}</span>
+            </div>
+          </article>
+        `
+          )
+          .join("");
+
+        grid.querySelectorAll(".card-post").forEach((card) => {
+          card.onclick = () => openView(card.dataset.id);
+        });
+      }
+
+      function dayBucket(ts) {
+        const a = new Date();
+        a.setHours(0, 0, 0, 0);
+        const b = new Date(ts);
+        b.setHours(0, 0, 0, 0);
+        return Math.round((a - b) / 86400000); // 0=hoy,1=ontem, etc
+      }
+
+      function score(p) {
+        const likes = p.likes?.length || 0;
+        const dislikes = p.dislikes?.length || 0;
+        const comments = p.comments?.length || 0;
+        const views = p.views || 0;
+        return likes * 3 + comments * 4 + views * 0.1 - dislikes * 2;
+      }
+
+      function sortPosts(arr, mode) {
+        return arr.slice().sort((a, b) => {
+          if (mode === "recent") return b.createdAt - a.createdAt;
+          if (mode === "trending")
+            return score(b) - score(a) || b.createdAt - a.createdAt;
+          const d = dayBucket(a.createdAt) - dayBucket(b.createdAt); // menor primeiro (hoje -> 0)
+          if (d !== 0) return d; // prioridade por data (hoje antes de ontem)
+          const s = score(b) - score(a);
+          if (s !== 0) return s; // mais engajamento
+          return b.createdAt - a.createdAt; // desempate
+        });
+      }
+
+      // --- Create Post ----------------------------------------------------------
+      document.getElementById("fab").onclick = () => {
+        if (!LS.me()) return alert("Faça login para postar.");
+        openModal("#postModal");
+      };
+      document
+        .querySelectorAll("[data-close]")
+        .forEach((b) =>
+          b.addEventListener("click", (e) =>
+            closeModal(e.currentTarget.dataset.close)
+          )
+        );
+
+      document.getElementById("savePost").onclick = () => {
+        const me = LS.me();
+        if (!me) return alert("Login necessário.");
+        const agent = document.getElementById("fAgent").value;
+        const map = document.getElementById("fMap").value;
+        const url = document.getElementById("fUrl").value.trim();
+        const title = document.getElementById("fTitle").value.trim();
+        const description = document.getElementById("fDesc").value.trim();
+        if (!agent || !map || !url || !title)
+          return alert("Preencha agente, mapa, URL e título.");
+        if (!isYoutube(url)) return alert("Informe uma URL válida do YouTube.");
+
+        const p = LS.posts();
+        const item = {
+          id: uid(),
+          author: me.username,
+          authorId: me.id,
+          agent,
+          map,
+          url,
+          title,
+          description,
+          createdAt: Date.now(),
+          likes: [],
+          dislikes: [],
+          views: 0,
+          comments: [],
+        };
+        p.push(item);
+        LS.savePosts(p);
+        closeModal("#postModal");
+        // limpa form
+        ["fAgent", "fMap", "fUrl", "fTitle", "fDesc"].forEach(
+          (id) => (document.getElementById(id).value = "")
+        );
+        renderGrid();
+      };
+
+      // --- View Post ------------------------------------------------------------
+      let CURRENT_VIEW_ID = null;
+      function openView(id) {
+        const p = LS.posts().find((x) => x.id === id);
+        if (!p) return;
+        CURRENT_VIEW_ID = id;
+        document.getElementById("vmTitle").textContent = p.title;
+        document.getElementById("vmMeta").textContent = `${p.agent} • ${
+          p.map
+        } • ${formatDate(p.createdAt)}`;
+        document.getElementById("vmPlayer").src = toEmbed(p.url);
+        document.getElementById("vmLikes").textContent = p.likes.length;
+        document.getElementById("vmDislikes").textContent = p.dislikes.length;
+        document.getElementById("vmViews").textContent = p.views;
+        document.getElementById("vmDesc").textContent = p.description || "";
+
+        // pills
+        const pills = document.getElementById("vmPills");
+        pills.innerHTML = `<span class="pill">Autor: ${escapeHtml(
+          p.author
+        )}</span>`;
+
+        // comments
+        renderComments(p);
+
+        // count a view per open
+        const me = LS.me();
+        if (me) {
+          // naive: increment every open
+          p.views = (p.views || 0) + 1;
+          savePost(p);
+          document.getElementById("vmViews").textContent = p.views;
+        }
+
+        // like / dislike
+        document.getElementById("btnLike").onclick = () =>
+          toggleReaction("like");
+        document.getElementById("btnDislike").onclick = () =>
+          toggleReaction("dislike");
+
+        // commenting
+        document.getElementById("sendComment").onclick = () => {
+          const me = LS.me();
+          if (!me) return alert("Faça login para comentar.");
+          const txt = document.getElementById("commentText").value.trim();
+          if (!txt) return;
+          const all = LS.posts();
+          const idx = all.findIndex((x) => x.id === CURRENT_VIEW_ID);
+          if (idx < 0) return;
+          const c = {
+            id: uid(),
+            by: me.username,
+            byId: me.id,
+            text: txt,
+            at: Date.now(),
+          };
+          all[idx].comments.push(c);
+          LS.savePosts(all);
+          document.getElementById("commentText").value = "";
+          renderComments(all[idx]);
+          renderGrid(); // update counts
+        };
+
+        openModal("#viewModal");
+      }
+
+      function renderComments(p) {
+        const box = document.getElementById("comments");
+        if (!p.comments.length) {
+          box.innerHTML = `<div class="muted">Seja o primeiro a comentar.</div>`;
+          return;
+        }
+        box.innerHTML = p.comments
+          .slice()
+          .sort((a, b) => a.at - b.at)
+          .map(
+            (c) => `
+          <div class="comment">
+            <div class="by">${escapeHtml(c.by)} · ${formatDate(c.at)}</div>
+            <div>${escapeHtml(c.text)}</div>
+          </div>
+        `
+          )
+          .join("");
+      }
+
+      function toggleReaction(kind) {
+        const me = LS.me();
+        if (!me) return alert("Faça login para reagir.");
+        const all = LS.posts();
+        const p = all.find((x) => x.id === CURRENT_VIEW_ID);
+        if (!p) return;
+        p.likes = p.likes || [];
+        p.dislikes = p.dislikes || [];
+        // remove from both first
+        p.likes = p.likes.filter((u) => u !== me.id);
+        p.dislikes = p.dislikes.filter((u) => u !== me.id);
+        if (kind === "like") p.likes.push(me.id);
+        else p.dislikes.push(me.id);
+        LS.savePosts(all);
+        document.getElementById("vmLikes").textContent = p.likes.length;
+        document.getElementById("vmDislikes").textContent = p.dislikes.length;
+        renderGrid();
+      }
+
+      function savePost(p) {
+        const all = LS.posts();
+        const i = all.findIndex((x) => x.id === p.id);
+        if (i >= 0) {
+          all[i] = p;
+          LS.savePosts(all);
+        }
+      }
+
+      // --- Filters listeners ----------------------------------------------------
+      document.getElementById("q").addEventListener("input", (e) => {
+        STATE.q = e.target.value;
+        renderGrid();
+      });
+      document.getElementById("filterAgent").addEventListener("change", (e) => {
+        STATE.agent = e.target.value;
+        renderGrid();
+      });
+      document.getElementById("filterMap").addEventListener("change", (e) => {
+        STATE.map = e.target.value;
+        renderGrid();
+      });
+      document.getElementById("filterSort").addEventListener("change", (e) => {
+        STATE.sort = e.target.value;
+        renderGrid();
+      });
+
+      // --- Modal helpers --------------------------------------------------------
+      function openModal(sel) {
+        document.querySelector(sel).classList.add("show");
+      }
+      function closeModal(sel) {
+        const m = document.querySelector(sel);
+        m.classList.remove("show");
+        if (sel === "#viewModal")
+          document.getElementById("vmPlayer").src = "about:blank";
+      }
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          document
+            .querySelectorAll(".modal.show")
+            .forEach((m) => m.classList.remove("show"));
+          document.getElementById("vmPlayer").src = "about:blank";
+        }
+      });
+      document.querySelectorAll(".modal").forEach((m) => {
+        m.addEventListener("click", (e) => {
+          if (e.target === m) m.classList.remove("show");
+        });
+      });
+
+      // --- Utils ----------------------------------------------------------------
+      function isYoutube(url) {
+        try {
+          const u = new URL(url);
+          return /youtube\.com|youtu\.be/.test(u.hostname);
+        } catch {
+          return false;
+        }
+      }
+      function toEmbed(url) {
+        try {
+          const u = new URL(url);
+          if (u.hostname.includes("youtu.be")) {
+            const id = u.pathname.slice(1);
+            return `https://www.youtube.com/embed/${id}`;
+          }
+          const id = u.searchParams.get("v");
+          if (id) return `https://www.youtube.com/embed/${id}`;
+        } catch {}
+        return "about:blank";
+      }
+      function thumbFromUrl(url) {
+        try {
+          const u = new URL(url);
+          let id = "";
+          if (u.hostname.includes("youtu.be")) id = u.pathname.slice(1);
+          else id = u.searchParams.get("v") || "";
+          return id
+            ? `https://i.ytimg.com/vi/${id}/hqdefault.jpg`
+            : "https://i.ytimg.com/vi/5qap5aO4i9A/hqdefault.jpg";
+        } catch {
+          return "https://i.ytimg.com/vi/5qap5aO4i9A/hqdefault.jpg";
+        }
+      }
+      function escapeHtml(s) {
+        return s.replace(
+          /[&<>"]+/g,
+          (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])
+        );
+      }
+      function formatDate(ts) {
+        const d = new Date(ts);
+        const dd = String(d.getDate()).padStart(2, "0");
+        const mm = String(d.getMonth() + 1).padStart(2, "0");
+        const yyyy = d.getFullYear();
+        return `${dd}/${mm}/${yyyy}`;
+      }
+
+      // --- Mount ---------------------------------------------------------------
+      function mount() {
+        renderAuthArea();
+        const me = LS.me();
+        if (me) showFeed();
+        else showAuth();
+      }
+      mount();
+
+      // --- Seed (optional for demo) --------------------------------------------
+      /*if(LS.posts().length===0){
+        const demo = [
+          {agent:'Sova',map:'Ascent',title:'Recon B Main + Shock',url:'https://www.youtube.com/watch?v=5qap5aO4i9A',description:'Arrow padrão + shock line para segurar avanço.', createdAt:Date.now()-86400000, likes:[],dislikes:[],views:0,comments:[]},
+          {agent:'Viper',map:'Bind',title:'Pós-plant Viper's Pit A',url:'https://www.youtube.com/watch?v=dQw4w9WgXcQ',description:'Smoke + molotov no default.', createdAt:Date.now(), likes:[],dislikes:[],views:0,comments:[]},
+          {agent:'Killjoy',map:'Haven',title:'Setup C retake seguro',url:'https://www.youtube.com/watch?v=oHg5SJYRHA0',description:'Alarm + nanos no contato.', createdAt:Date.now(), likes:[],dislikes:[],views:0,comments:[]},
+        ];
+        const me = {id:uid(), username:'demo'}; LS.setMe(me);
+        const seeded = demo.map(x=>({id:uid(),author:me.username,authorId:me.id,...x}));
+        LS.savePosts(seeded);
+      }*/
+    </script>
+  </body>
+</html>
